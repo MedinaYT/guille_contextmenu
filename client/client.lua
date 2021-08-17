@@ -9,50 +9,69 @@ end
 local GUI = {}
 GUI.Time = 0
 
+RegisterCommand('test', function()
+    openShop()
+end)
+
 local isThis = {}
+
+function openShop()
+    local data = {}
+    local cb = "item"
+    for i=1, 20 do
+        table.insert(data, {text = "Hola<span style='color:green'>".. 100 .."$</span>", toDo = 'Alo'})
+    end
+    TriggerEvent("guille_cont:client:open", 'Title', data, cb, false)
+end
+
+RegisterNUICallback("item", function(cb)
+    print('hola')
+end)
 
 
 RegisterNetEvent("guille_cont:client:open")
 AddEventHandler("guille_cont:client:open", function(title, data, cb, useCoords, coords)
-    local datas = -1
-    if title == nil then
-        log("error", "Title does not exist")
-        return
-    end
-    if useCoords == nil then
-        log("error", "Using coords not set, it must be true or false")
-        return
-    end
-    for k,v in pairs(data) do
-        datas = datas + 1
-        if v.toDo == nil then
-            log("error", "The data toDo does not exist in table data, read the guille_contextmenu docs")
+    if not isThis.menuOpened then
+        local datas = -1
+        if title == nil then
+            log("error", "Title does not exist")
             return
         end
-        v.toDo = v.toDo:gsub('"', "'")
+        if useCoords == nil then
+            log("error", "Using coords not set, it must be true or false")
+            return
+        end
+        for k,v in pairs(data) do
+            datas = datas + 1
+            if v.toDo == nil then
+                log("error", "The data toDo does not exist in table data, read the guille_contextmenu docs")
+                return
+            end
+            v.toDo = v.toDo:gsub('"', "'")
+        end
+        if useCoords then
+            log("info", "Menu created")
+            local _, screenPox, ScreenPoy = GetScreenCoordFromWorldCoord(coords.x, coords.y, coords.z + 1.5)
+            SendNUIMessage({
+                title = title;
+                data = data;
+                cb = cb;
+                x = screenPox * 100;
+                y = ScreenPoy * 100;
+                useCoords = useCoords;
+            })
+        else
+            log("Menu created", '')
+            SendNUIMessage({
+                title = title;
+                data = data;
+                cb = cb;
+                useCoords = useCoords;
+            })
+            isThis.menuOpened = true
+            TriggerEvent("openMenu", datas)
+        end
     end
-    if useCoords then
-        log("info", "Menu created")
-        local _, screenPox, ScreenPoy = GetScreenCoordFromWorldCoord(coords.x, coords.y, coords.z + 1.5)
-        SendNUIMessage({
-            title = title;
-            data = data;
-            cb = cb;
-            x = screenPox * 100;
-            y = ScreenPoy * 100;
-            useCoords = useCoords;
-        })
-    else
-        log("Menu created", '')
-        SendNUIMessage({
-            title = title;
-            data = data;
-            cb = cb;
-            useCoords = useCoords;
-        })
-        isThis.menuOpened = true
-        TriggerEvent("openMenu", datas)
-    end 
 end)
 
 RegisterNUICallback("close", function(cb)
